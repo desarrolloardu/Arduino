@@ -1,5 +1,5 @@
 /*
-hola
+
  Pin    |  Interrrupt # | Arduino Platform
  ---------------------------------------
  2      |  0            |  All
