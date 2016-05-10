@@ -24,7 +24,7 @@ void loop()
     while(BT1.available())
     {
       int c = BT1.read(); // read the next character
-      Serial.write((char)c);  // writes data to the serial monitor
+      Serial.print((char)c);  // writes data to the serial monitor
     }
   }
  
@@ -43,7 +43,7 @@ void loop()
     // print the command and send it to the ESP
     Serial.println();
     Serial.print(">>>> ");
-    Serial.println(cmd);
+   // Serial.println(cmd);
 
     // send the read character to the ESP
     BT1.print(cmd);

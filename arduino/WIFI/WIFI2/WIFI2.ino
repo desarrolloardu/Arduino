@@ -4,7 +4,8 @@ SoftwareSerial BT1(10,11); // RX | TX
 void setup()
   {  Serial.begin(9600);
      BT1.begin(19200);
-     Serial.print("holaardu");
+     delay(50);
+     Serial.print("hola ardu");
   }
 
 void loop()
