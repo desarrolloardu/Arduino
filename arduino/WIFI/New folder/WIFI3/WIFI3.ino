@@ -54,7 +54,7 @@ void loop(void)
 
    if(cont==5)
    {
-
+  wifi.releaseTCP();
       if (wifi.createTCP(HOST_NAME, HOST_PORT)) {
        // Serial.print("create tcp ok\r\n");
       } else {
@@ -87,9 +87,11 @@ void loop(void)
       strcpy(result,four);
       wifi.send((const uint8_t*)result, strlen(result));
       actualizar=false;
+
+      wifi.releaseTCP();
   }
 
-  uint32_t len = wifi.recv(buffer, sizeof(buffer),500);
+  uint32_t len = wifi.recv(buffer, sizeof(buffer),600);
 
   if (len > 0) 
   {
