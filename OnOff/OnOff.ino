@@ -7,6 +7,7 @@
 
 //PARA EL ONOFF
 #define ONOFF 5
+String mensaje = "";
 //PARA EL ONOFF
 
 SoftwareSerial BTSerial(TxD, RxD);
@@ -45,28 +46,38 @@ void loop()
   // Esperamos ha recibir datos.
 
   char command;
-  if (BTSerial.available())
-  {
-    
+
+  command = BTSerial.read();
+  while (command != -1)
+  { 
     // La funcion read() devuelve un caracter 
+
+     if(command == ';')
+    {
+      //Serial.println(mensaje);
+      Rele(mensaje);
+      mensaje = "";
+    }
+    else
+    {
+      mensaje = mensaje + String(command);
+      //Serial.println(String(command));
+    }
     command = BTSerial.read();
     BTSerial.flush();
-
-    //Serial.println(mensaje);
-    Rele(String(command));
-
   }
 
+  delay(3000);
 }
 
 
 void Rele(String value)
 {
-  if (value == "1")
+  if (value == "ON")
   {
      digitalWrite(ONOFF, HIGH);
   }
-  else
+  if (value == "OFF")
      digitalWrite(ONOFF, LOW);
 }
 

@@ -1,24 +1,31 @@
 #include "ESP8266.h"
 #include <SoftwareSerial.h>
-SoftwareSerial BT1(8,9); // RX | TX
+SoftwareSerial BT1(8,9); // RX | TX --> WIFI
 
 SoftwareSerial BTBluetooth(10,11); // RX | TX
 
-#define SSID        "Cisco16027"
-#define PASSWORD    "lospericos8"
-#define HOST_NAME   "192.168.1.10"
+//#define SSID        "Cisco16027"
+//#define PASSWORD    "lospericos8"
+
+#define SSID        "NotebookNetwork"
+#define PASSWORD    "dvo3E7Wxxne4kybJEouyPK"
+#define HOST_NAME   "192.168.1.107"
 #define HOST_PORT   (80)
 ESP8266 wifi(BT1);
 
 //PARA EL ONOFF
 #define ONOFF 5
 char command;
+String mensaje = "";
 //PARA EL ONOFF
 
 String prueba = "";
 int cont = 0;
+int cconnect = 0;
 
 bool actualizar = false;
+bool bconnect = false;
+int bluetimeout = 1500; // referencia a tiempo de enfoque en bluethooth. cuando supera este valor empieza a chequear wifi tambien.
 
 char result[100];
 
@@ -29,7 +36,7 @@ String selec_entrada = "";
 String selec_accion = ""; 
 String selec_valor = "";
 String selec_ejecutado = ""; 
-uint8_t buffer[50] = {0};
+uint8_t buffer[50];
 
 
 void setup(void)
@@ -40,12 +47,13 @@ void setup(void)
 
     BTBluetooth.begin(9600);
     BTBluetooth.flush();
-    delay(500);
+    //delay(500);
   
     Serial.begin(115200);
     BT1.begin(19200);
     Serial.print("setup begin\r\n");
 
+    BT1.listen();
     Serial.print("FW Version: ");
     Serial.println(wifi.getVersion().c_str());
     
@@ -77,31 +85,66 @@ void loop(void)
 {
    //result[100] = {'\0'};   // array to hold the result.
 
-  if (BTBluetooth.available())
-  {   
+
+   if(cconnect > bluetimeout){
+
+  //  Serial.println("contador en 10000");
+    cconnect = 0;
+    bconnect = false;
+    }
+
+  BTBluetooth.listen();
+  delay(15);
+  //Serial.println("esperando!!!");
+  command = BTBluetooth.read();
+  //BTBluetooth.flush();
+  while (command != -1)
+  { 
+
     // La funcion read() devuelve un caracter 
+   /* Rele("ON");
+    delay(1000);
+    Rele("OFF");
+    */
+     if(command == ';')
+    {
+     // Serial.println(mensaje);
+      if(mensaje == "CN"){
+
+        bconnect = true;
+        cconnect = 0;
+        
+        }else{
+            Rele(mensaje);
+      }
+      mensaje = "";
+    }
+    else
+    {
+      mensaje = mensaje + String(command);
+      //Serial.println(String(command));
+    }
     command = BTBluetooth.read();
     BTBluetooth.flush();
-
-    //Serial.println(mensaje);
-    Rele(String(command));
-
   }
    
 
-   if(cont==5)
+   if(cont==50)
    {
-    
-     Serial.print(wifi.releaseTCP());
+     BT1.listen();
+     wifi.releaseTCP();
+   //  Serial.print(wifi.releaseTCP());
+     wifi.createTCP(HOST_NAME, HOST_PORT);
+   /*
      if (wifi.createTCP(HOST_NAME, HOST_PORT)) {
         Serial.print("create tcp ok\r\n");
       } else {
         Serial.print("create tcp err\r\n");
       }
-    
-   // char *hello = "GET http://192.168.1.10/admin/modulos/consultar.php?idModulo=0\r\n";
+    */
+   // char *hello = "GET http://192.168.1.107/admin/modulos/consultar.php?idModulo=0\r\n";
 
-      char *one= "GET http://192.168.1.10/admin/modulos/consultar.php?idModulo=";
+      char *one= "GET http://192.168.1.107/admin/modulos/consultar.php?idModulo=";
       char *two= "1";
       char *three= "\r\n";
   
@@ -110,12 +153,15 @@ void loop(void)
       strcat(result,three); // append string three to the result.
      
       wifi.send((const uint8_t*)result, strlen(result));
-      Serial.print("enviando...");
+      Serial.print("consulto...");
       cont=0;
+
+      BTBluetooth.listen();
    }
 
   if(actualizar) 
   {
+     BT1.listen();
   //  Serial.print("actualizar");
     //Serial.print("actualizar - selec_id: " + selec_id);
       if (wifi.createTCP(HOST_NAME, HOST_PORT)) {
@@ -124,10 +170,7 @@ void loop(void)
        // Serial.print("create tcp err\r\n");
       }
       
-      char *four = "GET http://192.168.1.10/admin/modulos/actualizar.php?id=";
-
-      // Define 
-      // String str = "This is my string"; 
+      char *four = "GET http://192.168.1.107/admin/modulos/actualizar.php?id=";
     
       // Length (with one extra character for the null terminator)
       int str_len = selec_id.length() + 1; 
@@ -146,84 +189,86 @@ void loop(void)
       
       wifi.send((const uint8_t*)result, strlen(result));
       actualizar=false;
-
-      Serial.print(result);
+      Serial.print("actualizo");
+   //   Serial.print(result);
       
       wifi.releaseTCP();
      
-      
+      BTBluetooth.listen();
   }
   
-
-  uint32_t len = wifi.recv(buffer, sizeof(buffer),600);
-
-  if (len > 0) 
+  if(BTBluetooth.available()>0 || bconnect)
   {
-    
-    cont=3;
-
-    for(uint32_t i = 0; i < len; i++) 
-    {
-        if((char)buffer[i]=='[' && (char)buffer[i+1]=='[' && (char)buffer[i+2]=='[' )
-        {    
-            i+=3;
-            prueba = "";
-            dato = 0;
-
-            while((char)buffer[i]!=']')
-            {
-                if ((char)buffer[i] == ';')
-                {
-                  dato++;
-
-                  switch ( dato )
-                  {  
-                    case 1 : selec_id = prueba; break;
-                    case 2 : selec_idModulo = prueba; break;
-                    case 3 : selec_entrada = prueba; break;
-                    case 4 : selec_accion = prueba; break;
-                    case 5 : selec_valor = prueba; break;
-                    case 6 : selec_ejecutado = prueba; break;
-                  }
-              
-                  prueba = "";
-                }
-                else
-                  prueba = prueba + (char)buffer[i];                   
-                i++;
-            }
-            
-           //prueba+="\r\n";
-          // Serial.println(" imprimio");  
-           Serial.println(" selec_id:" + selec_id); 
-           Serial.println(" selec_idModulo:" + selec_idModulo); 
-           Serial.println(" selec_entrada:" + selec_entrada); 
-           Serial.println(" selec_accion:" + selec_accion); 
-           Serial.println(" selec_valor:" + selec_valor); 
-           Serial.println(" selec_idModulo:" + selec_ejecutado); 
-           
-        }
-
-    }
-
-    actualizar = true;
-
-
-
-    Rele(selec_accion);
-    /*
-    if (selec_accion == "ON")
-    {
-       digitalWrite(ONOFF, HIGH);
-    }
-    if (selec_accion == "OFF")
-    {
-       digitalWrite(ONOFF, LOW);
-    }*/
-
   }
-    
-  cont++;
+  else
+  {
+    BT1.listen();
+    uint32_t len = wifi.recv(buffer, sizeof(buffer),60);
+  
+    if (len > 0) 
+    {
+      
+      cont=3;
+  
+      for(uint32_t i = 0; i < len; i++) 
+      {
+          if((char)buffer[i]=='[' && (char)buffer[i+1]=='[' && (char)buffer[i+2]=='[' )
+          {    
+              i+=3;
+              prueba = "";
+              dato = 0;
+  
+              while((char)buffer[i]!=']')
+              {
+                  if ((char)buffer[i] == ';')
+                  {
+                    dato++;
+  
+                    switch ( dato )
+                    {  
+                      case 1 : selec_id = prueba; break;
+                      case 2 : selec_idModulo = prueba; break;
+                      case 3 : selec_entrada = prueba; break;
+                      case 4 : selec_accion = prueba; break;
+                      case 5 : selec_valor = prueba; break;
+                      case 6 : selec_ejecutado = prueba; break;
+                    }
+                
+                    prueba = "";
+                  }
+                  else
+                    prueba = prueba + (char)buffer[i];                   
+                  i++;
+              }
+              
+             //prueba+="\r\n";
+            // Serial.println(" imprimio");  
+
+            /*
+             Serial.println(" selec_id:" + selec_id); 
+             Serial.println(" selec_idModulo:" + selec_idModulo); 
+             Serial.println(" selec_entrada:" + selec_entrada); 
+             Serial.println(" selec_accion:" + selec_accion); 
+             Serial.println(" selec_valor:" + selec_valor); 
+             Serial.println(" selec_idModulo:" + selec_ejecutado); 
+            */
+             if(selec_id != "")
+                actualizar = true;
+             
+          }
+  
+      }
+  
+      
+  
+      Rele(selec_accion);
+  
+    }
+  
+    cont++;
+  } 
+
+   cconnect++;
   
 }
 
@@ -234,7 +279,7 @@ void Rele(String value)
   {
      digitalWrite(ONOFF, HIGH);
   }
-  if (selec_accion == "OFF")
+  if (value == "OFF")
   {
      digitalWrite(ONOFF, LOW);
   }
