@@ -11,12 +11,14 @@ SoftwareSerial BTBluetooth(10,11); // RX | TX
 #define PASSWORD    "dvo3E7Wxxne4kybJEouyPK"
 #define HOST_NAME   "192.168.1.107"
 #define HOST_PORT   (80)
+#define idModuloArdu "2"
 ESP8266 wifi(BT1);
 
 //PARA EL ONOFF
 #define ONOFF 5
 char command;
 String mensaje = "";
+char* estadoRele = "OFF";
 //PARA EL ONOFF
 
 String prueba = "";
@@ -25,7 +27,7 @@ int cconnect = 0;
 
 bool actualizar = false;
 bool bconnect = false;
-int bluetimeout = 1500; // referencia a tiempo de enfoque en bluethooth. cuando supera este valor empieza a chequear wifi tambien.
+int bluetimeout = 700; // referencia a tiempo de enfoque en bluethooth. cuando supera este valor empieza a chequear wifi tambien.
 
 char result[100];
 
@@ -94,7 +96,7 @@ void loop(void)
     }
 
   BTBluetooth.listen();
-  delay(15);
+  delay(10);
   //Serial.println("esperando!!!");
   command = BTBluetooth.read();
   //BTBluetooth.flush();
@@ -109,14 +111,23 @@ void loop(void)
      if(command == ';')
     {
      // Serial.println(mensaje);
-      if(mensaje == "CN"){
+      if(mensaje == "CN")
+      {
 
+       
         bconnect = true;
         cconnect = 0;
         
-        }else{
-            Rele(mensaje);
-      }
+        }else if(mensaje == "KA"){
+
+          BTBluetooth.write(estadoRele);
+        bconnect = true;
+        cconnect = 0;
+            
+      } else {
+        
+        Rele(mensaje);
+        }
       mensaje = "";
     }
     else
@@ -145,7 +156,7 @@ void loop(void)
    // char *hello = "GET http://192.168.1.107/admin/modulos/consultar.php?idModulo=0\r\n";
 
       char *one= "GET http://192.168.1.107/admin/modulos/consultar.php?idModulo=";
-      char *two= "1";
+      char *two= idModuloArdu;
       char *three= "\r\n";
   
       strcpy(result,one); // copy string one into the result.
@@ -278,10 +289,12 @@ void Rele(String value)
   if (value == "ON")
   {
      digitalWrite(ONOFF, HIGH);
+     estadoRele = "ON";
   }
   if (value == "OFF")
   {
      digitalWrite(ONOFF, LOW);
+     estadoRele = "OFF";
   }
 }
 
