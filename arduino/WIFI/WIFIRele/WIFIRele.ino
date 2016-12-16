@@ -4,14 +4,15 @@ SoftwareSerial BT1(8,9); // RX | TX --> WIFI
 
 SoftwareSerial BTBluetooth(10,11); // RX | TX
 
-//#define SSID        "Cisco16027"
-//#define PASSWORD    "lospericos8"
+#define SSID        "Cisco16027"
+#define PASSWORD    "lospericos8"
+#define HOST_NAME   "192.168.1.47"
 
-#define SSID        "NotebookNetwork"
-#define PASSWORD    "dvo3E7Wxxne4kybJEouyPK"
-#define HOST_NAME   "192.168.1.107"
+//#define SSID        "NotebMookNetwork"
+//#define PASSWORD    "dvo3E7Wxxne4kybJEouyPK"
+//#define HOST_NAME   "192.168.1.107"
 #define HOST_PORT   (80)
-#define idModuloArdu "2"
+#define idModuloArdu "1"   //Codigo del ardu.
 ESP8266 wifi(BT1);
 
 //PARA EL ONOFF
@@ -153,15 +154,19 @@ void loop(void)
         Serial.print("create tcp err\r\n");
       }
     */
-   // char *hello = "GET http://192.168.1.107/admin/modulos/consultar.php?idModulo=0\r\n";
+   // char *hello = "GET http://" + HOST_NAME + "/admin/modulos/consultar.php?idModulo=0\r\n";
 
-      char *one= "GET http://192.168.1.107/admin/modulos/consultar.php?idModulo=";
-      char *two= idModuloArdu;
-      char *three= "\r\n";
+      char *one= "GET http://";
+      char *two= HOST_NAME;
+      char *three= "/admin/modulos/consultar.php?idModulo=";
+      char *four= idModuloArdu;
+      char *five= "\r\n";
   
       strcpy(result,one); // copy string one into the result.
       strcat(result,two); // append string two to the result.
       strcat(result,three); // append string three to the result.
+      strcat(result,four);
+      strcat(result,five);
      
       wifi.send((const uint8_t*)result, strlen(result));
       Serial.print("consulto...");
@@ -181,7 +186,9 @@ void loop(void)
        // Serial.print("create tcp err\r\n");
       }
       
-      char *four = "GET http://192.168.1.107/admin/modulos/actualizar.php?id=";
+      char *ca = "GET http://";
+      char *cb = HOST_NAME;
+      char *cc = "/admin/modulos/actualizar.php?id=";
     
       // Length (with one extra character for the null terminator)
       int str_len = selec_id.length() + 1; 
@@ -192,11 +199,13 @@ void loop(void)
       // Copy it over 
       selec_id.toCharArray(char_array, str_len);
       
-      char *five = char_array;
-      char *six = "\r\n";
-      strcpy(result,four);
-      strcat(result,five); // append string two to the result.
-      strcat(result,six); // append string two to the result.
+      char *cd = char_array;
+      char *ce = "\r\n";
+      strcpy(result,ca);
+      strcat(result,cb); // append string two to the result.
+      strcat(result,cc); // append string two to the result.
+      strcat(result,cd); // append string two to the result.
+      strcat(result,ce); // append string two to the result.
       
       wifi.send((const uint8_t*)result, strlen(result));
       actualizar=false;

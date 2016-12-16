@@ -43,7 +43,7 @@ void setup()
 
 void loop()
 {
-  // Esperamos ha recibir datos.
+  // Esperamos a recibir datos.
 
   char command;
 

@@ -37,6 +37,8 @@
 SoftwareSerial BTSerial(TxD, RxD);
 byte pinEstado = 0;
 
+char command;
+
 /***********dimmer***********/
 volatile int intensidad = 0;
 int Salida2 = 6;    // Output to Opto Triac pin
@@ -125,20 +127,24 @@ void zero_crosss_int()  // function to be fired at the zero crossing to dim the 
 
 void loop()
 {
-  // Esperamos ha recibir datos.
+  // Esperamos a recibir datos.
   //String mensaje = "";
-  char command;
-  if (BTSerial.available())
+  
+  //if (BTSerial.available())
+
+  command = BTSerial.read();
+  if (command != -1)
   {
     
     // La funcion read() devuelve un caracter 
-    command = BTSerial.read();
-    BTSerial.flush();
+   // command = BTSerial.read();
+    //BTSerial.flush();
     // Serial.println(command);
     if(command == ';')
     {
       //Serial.println(mensaje);
-      DimmerOn(mensaje);
+     if((mensaje == "0") || (mensaje == "2") || (mensaje == "3") || (mensaje == "4") || (mensaje == "5") || (mensaje == "6") || (mensaje == "7") || (mensaje == "8") || (mensaje == "9") || (mensaje == "10") || (mensaje == "11") || (mensaje == "12") || (mensaje == "13") || (mensaje == "14") || (mensaje == "15") || (mensaje == "16") || (mensaje == "17") || (mensaje == "18") || (mensaje == "19")|| (mensaje == "20")) 
+        DimmerOn(mensaje);
       mensaje = "";
     }
     else
