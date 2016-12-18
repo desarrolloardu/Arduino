@@ -248,7 +248,15 @@ void IRsend::space(int time) {
   // Sends an IR space for the specified number of microseconds.
   // A space is no output, so the PWM output is disabled.
   TIMER_DISABLE_PWM; // Disable pin 3 PWM output
-  delayMicroseconds(time);
+
+
+  if(time < 15000)
+    delayMicroseconds(time);
+  else
+  {
+    int res = time/1000; 
+    delay(res);
+  }
 }
 
 void IRsend::enableIROut(int khz) {

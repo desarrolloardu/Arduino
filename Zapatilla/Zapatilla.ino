@@ -19,19 +19,16 @@
 //VCC va conectado a 5V
 #define RxD 11
 #define TxD 10
-//#define RST 5 // Encendido del Modulo
-#define KEY 4
 
-#define LED 13
 
 //GENERAL
 #define GND3 12
 #define VCC3 3
+String mensaje = "";
 //GENERAL
 
 //PARA EL ONOFF
-#define GND2 8
-#define ONOFF 13
+#define ONOFF 5
 //PARA EL ONOFF
 
 SoftwareSerial BTSerial(TxD, RxD);
@@ -43,21 +40,12 @@ char command;
 volatile int intensidad = 0;
 int Salida2 = 6;    // Output to Opto Triac pin
 int i = 1;
-String mensaje = "";
 /***********\dimmer***********/
 
 void setup()
 {
-  
-  pinMode(LED, OUTPUT);
-  //pinMode(RST, OUTPUT);
-  pinMode(KEY, OUTPUT);
-
   //PARA EL ONOFF  
-  pinMode(GND2, OUTPUT);
   pinMode(ONOFF, OUTPUT);
-  digitalWrite(GND2, LOW);
-  digitalWrite(ONOFF, HIGH);
   //PARA EL ONOFF
   
   //GENERAL  
@@ -66,15 +54,6 @@ void setup()
   digitalWrite(GND3, LOW);
   digitalWrite(VCC3, HIGH);
   //GENERAL
-  
-  // Estado inicial
-  digitalWrite(LED, LOW);
- // digitalWrite(RST, LOW);
-  // Modo Comunicacion
-  digitalWrite(KEY, LOW); 
-   
-  // Encendemos el modulo.
-  //digitalWrite(RST, HIGH);
   
   
   /***********dimmer***********/
@@ -135,16 +114,14 @@ void loop()
   command = BTSerial.read();
   if (command != -1)
   {
-    
-    // La funcion read() devuelve un caracter 
-   // command = BTSerial.read();
-    //BTSerial.flush();
-    // Serial.println(command);
     if(command == ';')
     {
       //Serial.println(mensaje);
      if((mensaje == "0") || (mensaje == "2") || (mensaje == "3") || (mensaje == "4") || (mensaje == "5") || (mensaje == "6") || (mensaje == "7") || (mensaje == "8") || (mensaje == "9") || (mensaje == "10") || (mensaje == "11") || (mensaje == "12") || (mensaje == "13") || (mensaje == "14") || (mensaje == "15") || (mensaje == "16") || (mensaje == "17") || (mensaje == "18") || (mensaje == "19")|| (mensaje == "20")) 
         DimmerOn(mensaje);
+      if((mensaje == "ON") || (mensaje == "OFF"))
+        Rele(mensaje);
+        
       mensaje = "";
     }
     else
@@ -163,3 +140,15 @@ void DimmerOn(String value)
         intensidad = value.toInt();
 }
 /***********\Dimmer***********/
+
+//PARA EL ONOFF  
+void Rele(String value)
+{
+  if (value == "ON")
+  {
+     digitalWrite(ONOFF, HIGH);
+  }
+  if (value == "OFF")
+     digitalWrite(ONOFF, LOW);
+}
+//PARA EL ONOFF  
